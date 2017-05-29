@@ -1,6 +1,6 @@
 <?php
 
-class ApprovalFromUI implements iPopupMenuExtension
+class ManualArchivePlugin implements iPopupMenuExtension
 {
 	/**
 	 * Get the list of items to be added to a menu.
