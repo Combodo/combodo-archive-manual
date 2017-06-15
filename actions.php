@@ -35,6 +35,63 @@ require_once(APPROOT.'/application/loginwebpage.class.inc.php');
 LoginWebPage::DoLogin(true); // Check user rights and prompt if needed (must be admin)
 
 
+function DBBulkWriteArchiveFlag(DBObjectSet $oSet, $bArchive)
+{
+	$sClass = $oSet->GetClass();
+	if (!MetaModel::IsArchivable($sClass))
+	{
+		throw new Exception($sClass.' is not an archivable class');
+	}
+	if (count(MetaModel::EnumChildClasses($sClass)) > 0)
+	{
+		throw new Exception("$sClass is not a leaf class, the algorithm does not support this configuration");
+	}
+
+	$iFlag = $bArchive ? 1 : 0;
+
+	// todo: découper en plusieurs passes = 1 par classe à traiter
+	$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('finalclass')));
+	$aIds = $oSet->GetColumnAsArray('id');
+	$sIds = implode(', ', $aIds);
+
+	$sArchiveRoot = MetaModel::GetAttributeOrigin($sClass, 'archive_flag');
+	$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
+	$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
+	$aJoins = array("`$sRootTable`");
+	$aUpdates = array();
+	foreach (MetaModel::EnumParentClasses($sClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass)
+	{
+		if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) continue;
+
+		$sTable = MetaModel::DBGetTable($sParentClass);
+		$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
+		if ($sParentClass == $sArchiveRoot)
+		{
+			if ($bArchive)
+			{
+				// Set the date (do not change it)
+				$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
+				$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
+			}
+			else
+			{
+				// Reset the date
+				$aUpdates[] = "`$sTable`.`archive_date` = null";
+			}
+		}
+		else
+		{
+			$sKey = MetaModel::DBGetKey($sParentClass);
+			$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
+		}
+	}
+	$sJoins = implode(' INNER JOIN ', $aJoins);
+	$sValues = implode(', ', $aUpdates);
+	$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
+	CMDBSource::Query($sUpdateQuery);
+}
+
+
 $sOperation = utils::ReadParam('operation', '');
 $oAppContext = new ApplicationContext();
 
@@ -73,33 +130,31 @@ try
 			break;
 
 		case 'archive_list':
+			$fStarted = microtime(true);
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
-			$oSet->OptimizeColumnLoad(array($oSearch->GetClassAlias() => array('archive_flag')));
 
 			$oP->p("Archiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
 			$oP->p($oSet->Count().' objects');
-			while ($oObject = $oSet->Fetch())
-			{
-				$oObject->DBArchive();
-			}
-			$oP->p('Done!');
+			DBBulkWriteArchiveFlag($oSet, true);
+			$fElapsed = microtime(true) - $fStarted;
+			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
+			$oP->p("Done! ($sRate)");
 			break;
 
 		case 'unarchive_list':
+			$fStarted = microtime(true);
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
-			$oSet->OptimizeColumnLoad(array($oSearch->GetClassAlias() => array('archive_flag')));
 
 			$oP->p("Unarchiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
 			$oP->p($oSet->Count().' objects');
-			while ($oObject = $oSet->Fetch())
-			{
-				$oObject->DBUnarchive();
-			}
-			$oP->p('Done!');
+			DBBulkWriteArchiveFlag($oSet, false);
+			$fElapsed = microtime(true) - $fStarted;
+			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
+			$oP->p("Done! ($sRate)");
 			break;
 
 		default:
@@ -107,7 +162,7 @@ try
 
 	}
 }
-catch(__Exception $e)
+catch(Exception $e)
 {
 	$oP->p($e->getMessage());
 }
