@@ -42,53 +42,64 @@ function DBBulkWriteArchiveFlag(DBObjectSet $oSet, $bArchive)
 	{
 		throw new Exception($sClass.' is not an archivable class');
 	}
-	if (count(MetaModel::EnumChildClasses($sClass)) > 0)
-	{
-		throw new Exception("$sClass is not a leaf class, the algorithm does not support this configuration");
-	}
 
 	$iFlag = $bArchive ? 1 : 0;
 
-	// todo: découper en plusieurs passes = 1 par classe à traiter
-	$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('finalclass')));
-	$aIds = $oSet->GetColumnAsArray('id');
-	$sIds = implode(', ', $aIds);
-
-	$sArchiveRoot = MetaModel::GetAttributeOrigin($sClass, 'archive_flag');
-	$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
-	$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
-	$aJoins = array("`$sRootTable`");
-	$aUpdates = array();
-	foreach (MetaModel::EnumParentClasses($sClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass)
+	if (MetaModel::IsStandaloneClass($sClass))
 	{
-		if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) continue;
-
-		$sTable = MetaModel::DBGetTable($sParentClass);
-		$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
-		if ($sParentClass == $sArchiveRoot)
+		$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('')));
+		$aIds = array($sClass => $oSet->GetColumnAsArray('id'));
+	}
+	else
+	{
+		$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('finalclass')));
+		$aTemp = $oSet->GetColumnAsArray('finalclass');
+		$aIds = array();
+		foreach ($aTemp as $iObjectId => $sObjectClass)
 		{
-			if ($bArchive)
+			$aIds[$sObjectClass][$iObjectId] = $iObjectId;
+		}
+	}
+	foreach ($aIds as $sFinalClass => $aObjectIds)
+	{
+		$sIds = implode(', ', $aObjectIds);
+
+		$sArchiveRoot = MetaModel::GetAttributeOrigin($sFinalClass, 'archive_flag');
+		$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
+		$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
+		$aJoins = array("`$sRootTable`");
+		$aUpdates = array();
+		foreach (MetaModel::EnumParentClasses($sFinalClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass)
+		{
+			if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) continue;
+
+			$sTable = MetaModel::DBGetTable($sParentClass);
+			$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
+			if ($sParentClass == $sArchiveRoot)
 			{
-				// Set the date (do not change it)
-				$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
-				$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
+				if ($bArchive)
+				{
+					// Set the date (do not change it)
+					$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
+					$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
+				}
+				else
+				{
+					// Reset the date
+					$aUpdates[] = "`$sTable`.`archive_date` = null";
+				}
 			}
 			else
 			{
-				// Reset the date
-				$aUpdates[] = "`$sTable`.`archive_date` = null";
+				$sKey = MetaModel::DBGetKey($sParentClass);
+				$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
 			}
 		}
-		else
-		{
-			$sKey = MetaModel::DBGetKey($sParentClass);
-			$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
-		}
+		$sJoins = implode(' INNER JOIN ', $aJoins);
+		$sValues = implode(', ', $aUpdates);
+		$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
+		CMDBSource::Query($sUpdateQuery);
 	}
-	$sJoins = implode(' INNER JOIN ', $aJoins);
-	$sValues = implode(', ', $aUpdates);
-	$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
-	CMDBSource::Query($sUpdateQuery);
 }
 
 
