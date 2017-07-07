@@ -34,75 +34,6 @@ require_once(APPROOT.'/application/startup.inc.php');
 require_once(APPROOT.'/application/loginwebpage.class.inc.php');
 LoginWebPage::DoLogin(true); // Check user rights and prompt if needed (must be admin)
 
-
-function DBBulkWriteArchiveFlag(DBObjectSet $oSet, $bArchive)
-{
-	$sClass = $oSet->GetClass();
-	if (!MetaModel::IsArchivable($sClass))
-	{
-		throw new Exception($sClass.' is not an archivable class');
-	}
-
-	$iFlag = $bArchive ? 1 : 0;
-
-	if (MetaModel::IsStandaloneClass($sClass))
-	{
-		$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('')));
-		$aIds = array($sClass => $oSet->GetColumnAsArray('id'));
-	}
-	else
-	{
-		$oSet->OptimizeColumnLoad(array($oSet->GetClassAlias() => array('finalclass')));
-		$aTemp = $oSet->GetColumnAsArray('finalclass');
-		$aIds = array();
-		foreach ($aTemp as $iObjectId => $sObjectClass)
-		{
-			$aIds[$sObjectClass][$iObjectId] = $iObjectId;
-		}
-	}
-	foreach ($aIds as $sFinalClass => $aObjectIds)
-	{
-		$sIds = implode(', ', $aObjectIds);
-
-		$sArchiveRoot = MetaModel::GetAttributeOrigin($sFinalClass, 'archive_flag');
-		$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
-		$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
-		$aJoins = array("`$sRootTable`");
-		$aUpdates = array();
-		foreach (MetaModel::EnumParentClasses($sFinalClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass)
-		{
-			if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) continue;
-
-			$sTable = MetaModel::DBGetTable($sParentClass);
-			$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
-			if ($sParentClass == $sArchiveRoot)
-			{
-				if ($bArchive)
-				{
-					// Set the date (do not change it)
-					$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
-					$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
-				}
-				else
-				{
-					// Reset the date
-					$aUpdates[] = "`$sTable`.`archive_date` = null";
-				}
-			}
-			else
-			{
-				$sKey = MetaModel::DBGetKey($sParentClass);
-				$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
-			}
-		}
-		$sJoins = implode(' INNER JOIN ', $aJoins);
-		$sValues = implode(', ', $aUpdates);
-		$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
-		CMDBSource::Query($sUpdateQuery);
-	}
-}
-
-
 $sOperation = utils::ReadParam('operation', '');
 $oAppContext = new ApplicationContext();
 
@@ -148,7 +79,7 @@ try
 
 			$oP->p("Archiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
 			$oP->p($oSet->Count().' objects');
-			DBBulkWriteArchiveFlag($oSet, true);
+			$oSet->GetFilter()->DBBulkWriteArchiveFlag(true);
 			$fElapsed = microtime(true) - $fStarted;
 			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
 			$oP->p("Done! ($sRate)");
@@ -162,7 +93,7 @@ try
 
 			$oP->p("Unarchiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
 			$oP->p($oSet->Count().' objects');
-			DBBulkWriteArchiveFlag($oSet, false);
+			$oSet->GetFilter()->DBBulkWriteArchiveFlag(false);
 			$fElapsed = microtime(true) - $fStarted;
 			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
 			$oP->p("Done! ($sRate)");
