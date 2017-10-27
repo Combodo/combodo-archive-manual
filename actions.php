@@ -37,9 +37,10 @@ LoginWebPage::DoLogin(true); // Check user rights and prompt if needed (must be 
 $sOperation = utils::ReadParam('operation', '');
 $oAppContext = new ApplicationContext();
 
-$oP = new iTopWebPage('Archiving...');
-//$oP->SetBreadCrumbEntry('archive-manual', Dict::S('Menu:RunQueriesMenu'), Dict::S('Menu:RunQueriesMenu+'), '', utils::GetAbsoluteUrlAppRoot().'images/wrench.png');
+$oP = new iTopWebPage(Dict::S("Archive:Title:ActionPage", 'Archiving...'));
 $oP->DisableBreadCrumb();
+
+const DIV_MESSAGE_OK = '<div class="header_message message_ok">';
 
 try
 {
@@ -49,12 +50,16 @@ try
 			$sClass = utils::ReadParam('class');
 			$iId = utils::ReadParam('id');
 			$oObject = MetaModel::GetObject($sClass, $iId, true, true);
-			$oP->p('Archiving '.$oObject->GetHyperlink().'...');
+
+			$oP->add("<h1>".Dict::S('Archive:Title:Archiving')."</h1>");
 			$oObject->DBArchive();
-			$oP->p('Done!');
-			cmdbAbstractObject::SetSessionMessage(get_class($oObject), $oObject->GetKey(), 'just-archived', Dict::S('Msg:ArchivedSuccess'), 'ok', 0, true /* must not exist */);
+			cmdbAbstractObject::SetSessionMessage(get_class($oObject), $oObject->GetKey(), 'just-archived',
+				Dict::S('Msg:ArchivedSuccess'), 'ok', 0, true /* must not exist */);
+
+			$oP->add(DIV_MESSAGE_OK.Dict::Format("Archive:Message:Archiving", $oObject->GetHyperlink())."</div>");
+
 			$sUrl = ApplicationContext::MakeObjectUrl($sClass, $iId);
-			$oP->p("Jumping back to the object page: $sUrl...");
+			$oP->p(Dict::Format("Archive:Message:Redirect", $sUrl));
 			$oP->add_header("Location: $sUrl");
 			break;
 
@@ -62,51 +67,119 @@ try
 			$sClass = utils::ReadParam('class');
 			$iId = utils::ReadParam('id');
 			$oObject = MetaModel::GetObjectWithArchive($sClass, $iId, true, true);
-			$oP->p('Unarchiving '.$oObject->GetHyperlink().'...');
+
+			$oP->add("<h1>".Dict::S('Archive:Title:UnArchiving')."</h1>");
 			$oObject->DBUnarchive();
-			$oP->p('Done!');
-			cmdbAbstractObject::SetSessionMessage(get_class($oObject), $oObject->GetKey(), 'just-unarchived', Dict::S('Msg:UnarchivedSuccess'), 'ok', 0, true /* must not exist */);
+			cmdbAbstractObject::SetSessionMessage(get_class($oObject), $oObject->GetKey(), 'just-unarchived',
+				Dict::S('Msg:UnarchivedSuccess'), 'ok', 0, true /* must not exist */);
+
+			$oP->add(DIV_MESSAGE_OK.Dict::Format("Archive:Message:UnArchiving", $oObject->GetHyperlink())."</div>");
+
 			$sUrl = ApplicationContext::MakeObjectUrl($sClass, $iId);
-			$oP->p("Jumping back to the object page: $sUrl...");
+			$oP->p(Dict::Format("Archive:Message:Redirect", $sUrl));
 			$oP->add_header("Location: $sUrl");
 			break;
 
+		case 'confirm_archive_list':
+			$sClass = utils::ReadParam('class', '', false, 'raw_data');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException("Not allowed to archive objects");
+			}
+			$sClassName = MetaModel::GetName($sClass);
+
+			$sOQL = utils::ReadParam('scope', '', false, 'raw_data');
+			$oSet = new CMDBObjectSet(DBObjectSearch::FromOQL($sOQL));
+			$oSet->SetShowObsoleteData(utils::ShowObsoleteData()); // Obsolescence filter
+			$iCount = $oSet->Count();
+
+			$oP->add("<h1>".Dict::Format('Archive:Confirm:ArchivingList', $iCount, $sClassName)."</h1>");
+
+			$aExtraParams = array(
+				'menu' => false,
+			);
+			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
+
+			$oP->add("<form method=\"post\">\n");
+			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputs($sClass, $sOQL, 'archive_list'));
+			$oP->add("<input type=\"button\" onclick=\"window.history.back();\" value=\"".Dict::S('UI:Button:Back')."\">\n");
+			$oP->add("<input type=\"submit\" name=\"\" value=\"".Dict::S('UI:Button:Archive')."\">\n");
+			$oP->add("</form>\n");
+			break;
+
+		case 'confirm_unarchive_list':
+			$sClass = utils::ReadParam('class', '', false, 'raw_data');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException("Not allowed to unarchive objects");
+			}
+			$sClassName = MetaModel::GetName($sClass);
+
+			$sOQL = utils::ReadParam('scope', '', false, 'raw_data');
+			$oSet = new CMDBObjectSet(DBObjectSearch::FromOQL($sOQL));
+			$oSet->SetShowObsoleteData(utils::ShowObsoleteData()); // Obsolescence filter
+			$iCount = $oSet->Count();
+
+			$oP->add("<h1>".Dict::Format('Archive:Confirm:UnArchivingList', $iCount, $sClassName)."</h1>");
+
+			$aExtraParams = array(
+				'menu' => false,
+			);
+			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
+
+			$oP->add("<form method=\"post\">\n");
+			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputs($sClass, $sOQL, 'unarchive_list'));
+			$oP->add("<input type=\"button\" onclick=\"window.history.back();\" value=\"".Dict::S('UI:Button:Back')."\">\n");
+			$oP->add("<input type=\"submit\" name=\"\" value=\"".Dict::S('UI:Button:UnArchive')."\">\n");
+			$oP->add("</form>\n");
+			break;
+
 		case 'archive_list':
-			$fStarted = microtime(true);
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
+			$oSet->SetShowObsoleteData(utils::ShowObsoleteData()); // Obsolescence filter
+			$iObjectsCount = $oSet->Count();
 
-			$oP->p("Archiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
-			$oP->p($oSet->Count().' objects');
+			$oP->add("<h1>".Dict::S('Archive:Title:ArchivingList')."</h1>");
+			$fStarted = microtime(true);
 			$oSet->GetFilter()->DBBulkWriteArchiveFlag(true);
 			$fElapsed = microtime(true) - $fStarted;
-			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
-			$oP->p("Done! ($sRate)");
+			$sProcessTime = (round($fElapsed, 3))."s";
+
+			$oP->add(DIV_MESSAGE_OK.Dict::Format('Archive:Message:ArchivingList', $iObjectsCount).'</div>');
+			$oP->p(Dict::Format('Archive:Message:ListTechnical', $sProcessTime));
 			break;
 
 		case 'unarchive_list':
-			$fStarted = microtime(true);
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
+			$oSet->SetShowObsoleteData(utils::ShowObsoleteData()); // Obsolescence filter
+			$iObjectsCount = $oSet->Count();
 
-			$oP->p("Unarchiving: ".htmlentities($sScope, ENT_QUOTES, 'UTF-8'));
-			$oP->p($oSet->Count().' objects');
+			$oP->add("<h1>".Dict::S('Archive:Title:UnArchivingList')."</h1>");
+			$fStarted = microtime(true);
 			$oSet->GetFilter()->DBBulkWriteArchiveFlag(false);
 			$fElapsed = microtime(true) - $fStarted;
-			$sRate = $fElapsed > 0.0001 ? round($oSet->Count()/$fElapsed, 1).' updates /s' : $fElapsed. 's... not significant';
-			$oP->p("Done! ($sRate)");
+			$sProcessTime = (round($fElapsed, 3))."s";
+
+			$oP->add(DIV_MESSAGE_OK.Dict::Format('Archive:Message:UnArchivingList', $iObjectsCount).'</div>');
+			$oP->p(Dict::Format('Archive:Message:ListTechnical', $sProcessTime));
 			break;
 
 		default:
 			$oP->p("Unsupported operation: $sOperation");
-
+			break;
 	}
-}
-catch(Exception $e)
+} catch (Exception $e)
 {
-	$oP->p($e->getMessage());
+	$sExceptionMessage = $e->getMessage();
+	$oP->add(<<<EOT
+<div class="header_message message_error">An error occured !<br>
+$sExceptionMessage
+EOT
+	);
 }
 
 $oP->output();
