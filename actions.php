@@ -101,7 +101,7 @@ try
 			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
 
 			$oP->add("<form method=\"post\">\n");
-			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputs($sClass, $sOQL, 'archive_list'));
+			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputsForMassUpdate($sClass, 'archive_list', $sOQL));
 			$oP->add("<input type=\"button\" onclick=\"window.history.back();\" value=\"".Dict::S('UI:Button:Back')."\">\n");
 			$oP->add("<input type=\"submit\" name=\"\" value=\"".Dict::S('UI:Button:Archive')."\">\n");
 			$oP->add("</form>\n");
@@ -128,7 +128,7 @@ try
 			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
 
 			$oP->add("<form method=\"post\">\n");
-			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputs($sClass, $sOQL, 'unarchive_list'));
+			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputsForMassUpdate($sClass, 'unarchive_list', $sOQL));
 			$oP->add("<input type=\"button\" onclick=\"window.history.back();\" value=\"".Dict::S('UI:Button:Back')."\">\n");
 			$oP->add("<input type=\"submit\" name=\"\" value=\"".Dict::S('UI:Button:UnArchive')."\">\n");
 			$oP->add("</form>\n");
@@ -169,7 +169,7 @@ try
 			break;
 
 		default:
-			$oP->p("Unsupported operation: $sOperation");
+			throw new CoreUnexpectedValue('Not a supported operation : '.$sOperation);
 			break;
 	}
 } catch (Exception $e)

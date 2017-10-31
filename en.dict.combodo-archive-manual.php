@@ -2,8 +2,8 @@
 Dict::Add('EN US', 'English', 'English', array(
 	'Action:ArchiveItem' => 'Archive!',
 	'Action:UnarchiveItem' => 'Unarchive!',
-	'Action:ArchiveList' => 'Archive all!',
-	'Action:UnarchiveList' => 'Unarchive all!',
+	'Action:ArchiveList' => 'Archive all...',
+	'Action:UnarchiveList' => 'Unarchive all...',
 	'UI:Button:Archive' => 'Archive!',
 	'UI:Button:UnArchive' => 'Unarchive!',
 
