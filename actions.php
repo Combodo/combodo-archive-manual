@@ -97,8 +97,10 @@ try
 
 			$aExtraParams = array(
 				'menu' => false,
+				'table_id' => 'archiveListConfirmation',
 			);
-			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
+			$oBlock = new DisplayBlock($oSet->GetFilter(), 'list', false, $aExtraParams);
+			$oBlock->Display($oP, 0);
 
 			$oP->add("<form method=\"post\">\n");
 			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputsForMassUpdate($sClass, 'archive_list', $sOQL));
@@ -124,8 +126,10 @@ try
 
 			$aExtraParams = array(
 				'menu' => false,
+				'table_id' => 'archiveListConfirmation',
 			);
-			cmdbAbstractObject::DisplaySet($oP, $oSet, $aExtraParams);
+			$oBlock = new DisplayBlock($oSet->GetFilter(), 'list', false, $aExtraParams);
+			$oBlock->Display($oP, 0);
 
 			$oP->add("<form method=\"post\">\n");
 			$oP->add(ArchiveUtils::GetActionPageHtmlHiddenInputsForMassUpdate($sClass, 'unarchive_list', $sOQL));
