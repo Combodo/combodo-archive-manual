@@ -9,7 +9,7 @@ class ManualArchivePlugin implements iPopupMenuExtension
 	 * The items will be inserted in the menu in the order of the returned array.
 	 *
 	 * @param int $iMenuId The identifier of the type of menu, as listed by the constants MENU_xxx
-	 * @param mixed $param Depends on $iMenuId, see the constants defined above
+	 * @param DBObject $param Depends on $iMenuId, see the constants defined above
 	 *
 	 * @return URLPopupMenuItem[] An array of ApplicationPopupMenuItem or an empty array if no action is to be added to the menu
 	 */
@@ -20,19 +20,22 @@ class ManualArchivePlugin implements iPopupMenuExtension
 		{
 			$oObject = $param;
 			$sClass = get_class($oObject);
+			$iId = intval($oObject->GetKey());
 
 			if (ArchiveUtils::CanArchive($sClass))
 			{
 				if ($oObject->IsArchived())
 				{
-					// Menu to UNarchive
-					$sArchiveUrl = utils::GetAbsoluteUrlModulePage('combodo-archive-manual', 'actions.php', array('operation' => 'unarchive_item', 'class' => $sClass, 'id' => $oObject->GetKey()));
+					// Menu to Unarchive : when archive mode is disabled the menu are not shown so this can't be accessed
+					$sOperation = "unarchive_item";
+					$sArchiveUrl = ArchiveUtils::GetActionPageUrlForSingleObject($sClass, $sOperation, $iId);;
 					$aRet[] = new URLPopupMenuItem('unarchive_item', Dict::S('Action:UnarchiveItem'), $sArchiveUrl);
 				}
 				else
 				{
 					// Menu to Archive
-					$sArchiveUrl = utils::GetAbsoluteUrlModulePage('combodo-archive-manual', 'actions.php', array('operation' => 'archive_item', 'class' => $sClass, 'id' => $oObject->GetKey()));
+					$sOperation = "archive_item";
+					$sArchiveUrl = ArchiveUtils::GetActionPageUrlForSingleObject($sClass, $sOperation, $iId);;
 					$aRet[] = new URLPopupMenuItem('archive_item', Dict::S('Action:ArchiveItem'), $sArchiveUrl);
 				}
 			}
@@ -50,13 +53,13 @@ class ManualArchivePlugin implements iPopupMenuExtension
 				if (utils::IsArchiveMode())
 				{
 					$sOperation = "confirm_unarchive_list";
-					$sArchiveUrl = ArchiveUtils::GetActionPageUrl($sClass, $sScope, $sOperation);
+					$sArchiveUrl = ArchiveUtils::GetActionPageUrlForMassUpdate($sClass, $sOperation, $sScope);
 					$aRet[] = new URLPopupMenuItem('unarchive_list', Dict::S('Action:UnarchiveList'), $sArchiveUrl);
 				}
 
 				// Menu to Archive
 				$sOperation = "confirm_archive_list";
-				$sArchiveUrl = ArchiveUtils::GetActionPageUrl($sClass, $sScope, $sOperation);
+				$sArchiveUrl = ArchiveUtils::GetActionPageUrlForMassUpdate($sClass, $sOperation, $sScope);
 				$aRet[] = new URLPopupMenuItem('archive_list', Dict::S('Action:ArchiveList'), $sArchiveUrl);
 			}
 		}
@@ -77,17 +80,42 @@ class ArchiveUtils
 	}
 
 	/**
-	 * @param $sClass
-	 * @param $sScope
-	 * @param $sOperation
+	 * @param string $sClass
+	 * @param string $sOperation
+	 * @param int $iId
 	 *
 	 * @return string
 	 */
-	public static function GetActionPageUrl($sClass, $sScope, $sOperation)
+	public static function GetActionPageUrlForSingleObject($sClass, $sOperation, $iId)
+	{
+		return self::GetActionPageUrl($sClass, $sOperation, $iId, null);
+	}
+
+	/**
+	 * @param string $sClass
+	 * @param string $sOperation
+	 * @param string $sScope
+	 *
+	 * @return string
+	 */
+	public static function GetActionPageUrlForMassUpdate($sClass, $sOperation, $sScope)
+	{
+		return self::GetActionPageUrl($sClass, $sOperation, null, $sScope);
+	}
+
+	/**
+	 * @param string $sClass
+	 * @param string $sOperation
+	 * @param int $iId for single update
+	 * @param string $sScope for mass update, query to retrieve objects to modify
+	 *
+	 * @return string
+	 */
+	private static function GetActionPageUrl($sClass, $sOperation, $iId, $sScope)
 	{
 		$sModuleName = basename(__DIR__);
 
-		$aActionArgs = self::GetActionPageArgs($sClass, $sScope, $sOperation);
+		$aActionArgs = self::GetActionPageArgs($sClass, $sOperation, $iId, $sScope);
 
 		$sActionPageUrl = utils::GetAbsoluteUrlModulePage($sModuleName, "actions.php", $aActionArgs);
 
@@ -96,27 +124,44 @@ class ArchiveUtils
 
 	/**
 	 * @param string $sClass
-	 * @param string $sScope
 	 * @param string $sOperation
+	 * @param int $iId for single update
+	 * @param string $sScope for mass update, query to retrieve objects to modify
 	 *
 	 * @return string[]
 	 */
-	private static function GetActionPageArgs($sClass, $sScope, $sOperation)
+	private static function GetActionPageArgs($sClass, $sOperation, $iId, $sScope)
 	{
-		//TODO save menu context
-		$aUiPageArgs = array(
-			'operation' => $sOperation,
-			'class' => $sClass,
-			'scope' => $sScope,
-		);
+		$oAppContext = new ApplicationContext();
+		$aUiPageArgs = $oAppContext->GetAsHash();
+
+		$aUiPageArgs['operation'] = $sOperation;
+		$aUiPageArgs['class'] = $sClass;
+
+		if (is_int($iId))
+		{
+			$aUiPageArgs['id'] = $iId;
+		}
+		if (is_string($sScope))
+		{
+			$aUiPageArgs['scope'] = $sScope;
+		}
 
 		return $aUiPageArgs;
 	}
 
-	public static function GetActionPageHtmlHiddenInputs($sClass, $sScope, $sOperation)
+	/**
+	 * @param string $sClass
+	 * @param string $sOperation
+	 * @param string $sScope for mass update, query to retrieve objects to modify
+	 *
+	 * @return string
+	 */
+	public static function GetActionPageHtmlHiddenInputsForMassUpdate($sClass, $sOperation, $sScope)
 	{
 		$sRet = '';
-		$aActionPageArgs = ArchiveUtils::GetActionPageArgs($sClass, $sScope, $sOperation);
+
+		$aActionPageArgs = ArchiveUtils::GetActionPageArgs($sClass, $sOperation, null, $sScope);
 		foreach($aActionPageArgs as $sName => $sValue)
 		{
 			$sRet .= '<input type="hidden" name="'.$sName.'" value="'.$sValue.'">';

@@ -2,8 +2,8 @@
 Dict::Add('FR FR', 'French', 'Français', array(
 	'Action:ArchiveItem' => 'Archiver !',
 	'Action:UnarchiveItem' => 'Désarchiver !',
-	'Action:ArchiveList' => 'Archiver tout !',
-	'Action:UnarchiveList' => 'Désarchiver tout !',
+	'Action:ArchiveList' => 'Archiver tout...',
+	'Action:UnarchiveList' => 'Désarchiver tout...',
 	'UI:Button:Archive' => 'Archiver !',
 	'UI:Button:UnArchive' => 'Désarchiver !',
 
