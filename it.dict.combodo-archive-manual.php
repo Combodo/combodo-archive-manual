@@ -1,9 +1,9 @@
 <?php
-Dict::Add('ES CR', 'Spanish', 'Español, Castellaño', array(
-	'Action:ArchiveItem' => 'Archivar',
-	'Action:UnarchiveItem' => 'DesArchivar',
-	'Action:ArchiveList' => 'Archivar Todo',
-	'Action:UnarchiveList' => 'DesArchivar Todo',
+Dict::Add('IT IT', 'Italian', 'Italiano', array(
+	'Action:ArchiveItem' => 'Archive!~~',
+	'Action:UnarchiveItem' => 'Unarchive!~~',
+	'Action:ArchiveList' => 'Archive all...~~',
+	'Action:UnarchiveList' => 'Unarchive all...~~',
 	'UI:Button:Archive' => 'Archive!~~',
 	'UI:Button:UnArchive' => 'Unarchive!~~',
 
@@ -15,8 +15,8 @@ Dict::Add('ES CR', 'Spanish', 'Español, Castellaño', array(
 	'Archive:Message:UnArchiving' => 'The object "%1$s" has been successfully unarchived~~',
 	'Archive:Message:Redirect' => 'You will be redirect to <a href="%1$s">the object page</a>~~',
 
-	'Msg:ArchivedSuccess' => 'El objeto ha sido exitosamente archivado',
-	'Msg:UnarchivedSuccess' => 'El objeto ha sido exitosamente desarchivado',
+	'Msg:ArchivedSuccess' => 'The object has been successfully archived~~',
+	'Msg:UnarchivedSuccess' => 'The object has been successfully unarchived~~',
 
 	'Archive:Title:ArchivingList' => 'Archiving multiple objects~~',
 	'Archive:Confirm:ArchivingList' => 'Please confirm that you want to archive the following %1$d objects of class %2$s.~~',
