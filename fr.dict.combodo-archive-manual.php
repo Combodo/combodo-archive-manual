@@ -21,8 +21,8 @@ Dict::Add('FR FR', 'French', 'Français', array(
 	'Archive:Title:ArchivingList' => 'Archivage de plusieurs objets',
 	'Archive:Confirm:ArchivingList' => 'Confirmez que vous voulez bien archiver les %1$d objets de type %2$s ci-dessous.',
 	'Archive:Message:ArchivingList' => '%1$d objet(s) ont été archivé(s).',
-	'Archive:Confirm:UnArchivingList' => 'Confirmez que vous voulez bien désarchiver les %1$d objets de type %2$s ci-dessous.',
 	'Archive:Title:UnArchivingList' => 'Désarchivage de plusieurs objets',
+	'Archive:Confirm:UnArchivingList' => 'Confirmez que vous voulez bien désarchiver les %1$d objets de type %2$s ci-dessous.',
 	'Archive:Message:UnArchivingList' => '%1$d objet(s) ont été désarchivé(s).',
 	'Archive:Message:ListTechnical' => 'Temps de traitement : %1$s',
 ));
