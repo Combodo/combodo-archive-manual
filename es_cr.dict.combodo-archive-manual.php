@@ -1,9 +1,18 @@
 <?php
-Dict::Add('ES CR', 'Spanish', 'Español, Castellaño', array(
-	'Action:ArchiveItem' => 'Archivar',
-	'Action:UnarchiveItem' => 'DesArchivar',
-	'Action:ArchiveList' => 'Archivar Todo',
-	'Action:UnarchiveList' => 'DesArchivar Todo',
+/**
+ * Spanish Localized data
+ *
+ * @copyright   Copyright (C) 2010-2021 Combodo SARL
+ * @license     http://opensource.org/licenses/AGPL-3.0
+ * @traductor   Miguel Turrubiates <miguel_tf@yahoo.com>
+ * @notas       Utilizar codificación UTF-8 para mostrar acentos y otros caracteres especiales
+ */
+
+Dict::Add('ES CR', 'Spanish', 'Español, Castellano', array(
+	'Action:ArchiveItem'    => 'Archivar',
+	'Action:UnarchiveItem'  => 'DesArchivar',
+	'Action:ArchiveList'    => 'Archivar Todo',
+	'Action:UnarchiveList'  => 'DesArchivar Todo',
 	'UI:Button:Archive' => 'Archive!~~',
 	'UI:Button:UnArchive' => 'Unarchive!~~',
 
