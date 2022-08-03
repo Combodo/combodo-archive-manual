@@ -62,7 +62,7 @@ Dict::Add('EN US', 'English', 'English', array(
 	'Class:ArchivingRule/Error:StatusValueNotValid' => '"%3$s" is not a valid value for attribute "%2$s" of "%1$s" class',
 	'Class:ArchivingRule/Error:ExistingRuleForClass' => 'There is already a archiving rule for class "%1$s"',
 	'Class:ArchivingRule/Error:NoOptionFilled' => 'Either option 1 or option 2 must be filled',
-	'Class:ArchivingRule/Error:OptionOneMissingField' => 'All fields of option 1 must be filled',
+	'Class:ArchivingRule/Error:OptionOneMissingField' => ' Fields date and delay of option 1 must be filled',
 
 	// Presentation
 	'ArchivingRule:general' => 'General informations',
