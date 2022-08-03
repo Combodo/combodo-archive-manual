@@ -5,11 +5,11 @@
 
 SetupWebPage::AddModule(
 	__FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-	'combodo-archive-manual/1.0.3',
+	'combodo-archive-manual/1.1.0-dev',
 	array(
 		// Identification
 		//
-		'label' => 'Archive tickets manually',
+		'label' => 'Data archiver',
 		'category' => 'feature',
 
 		// Setup
@@ -23,7 +23,9 @@ SetupWebPage::AddModule(
 		// Components
 		//
 		'datamodel' => array(
-			'main.combodo-archive-manual.php'
+			'main.combodo-archive-manual.php',
+			'model.combodo-archive-manual.php',
+			'schedule-autoarchive.php',
 		),
 		'webservice' => array(
 
