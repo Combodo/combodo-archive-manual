@@ -50,7 +50,7 @@ Dict::Add('FR FR', 'French', 'Français', array(
 	'Class:ArchivingRule/Attribute:date_to_check_att' => 'Date à contrôler',
 	'Class:ArchivingRule/Attribute:date_to_check_att+' => 'Code atribut de la date à contrôler',
 	'Class:ArchivingRule/Attribute:autoarchive_delay' => 'Délai d\'archivage',
-	'Class:ArchivingRule/Attribute:autoarchivee_delay+' => 'Délai en jours avant l\'application de l\'archivage sur les objets (par rapport à la date de contrôle)',
+	'Class:ArchivingRule/Attribute:autoarchive_delay+' => 'Délai en jours avant l\'application de l\'archivage sur les objets (par rapport à la date de contrôle)',
 	'Class:ArchivingRule/Attribute:oql_scope' => 'Périmêtre OQL',
 	'Class:ArchivingRule/Attribute:oql_scope+' => 'Requête OQL définissant les objets concernés par cette règle.',
 
