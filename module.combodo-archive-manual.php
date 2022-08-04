@@ -25,7 +25,7 @@ SetupWebPage::AddModule(
 		'datamodel' => array(
 			'main.combodo-archive-manual.php',
 			'model.combodo-archive-manual.php',
-			'schedule-autoarchive.php',
+			'AutoArchiveExec.php',
 		),
 		'webservice' => array(
 

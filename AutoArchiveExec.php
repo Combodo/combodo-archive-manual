@@ -95,11 +95,9 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 				$this->Trace('|- TimeLimit:'.$iTimeLimit);
 				//while there is objects to process
 				while ($bRuleToProcess && (time()<$iTimeLimit)) {
-					$this->Trace('|- Durée:'.(time()));
 					$oSet = new DBObjectSet($oSearch, array(),  array(),  null, $this->iLimit);
-					$this->Trace('|- nouvelle boucle:');
 					if (MetaModel::IsStandaloneClass($sClass)) {
-						$oSet->OptimizeColumnLoad(array($sClass => array('archive_flag')));
+						$oSet->OptimizeColumnLoad(array($sClass => array()));
 						$aTemp = $oSet->GetColumnAsArray('id');
 						$aIds = array($sClass => $aTemp);
 					} else {
