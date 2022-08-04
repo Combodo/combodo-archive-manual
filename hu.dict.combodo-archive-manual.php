@@ -50,7 +50,7 @@ Dict::Add('HU HU', 'Hungarian', 'Magyar', array(
 	'Class:ArchivingRule/Attribute:date_to_check_att' => 'Date to check~~',
 	'Class:ArchivingRule/Attribute:date_to_check_att+' => 'Attribute code of the date to check~~',
 	'Class:ArchivingRule/Attribute:autoarchive_delay' => 'Autoarchiving delay~~',
-	'Class:ArchivingRule/Attribute:autoarchivee_delay+' => 'Delay in days before applying the stimulus on the objects (regarding the date to check)~~',
+	'Class:ArchivingRule/Attribute:autoarchive_delay+' => 'Delay in days before applying the stimulus on the objects (regarding the date to check)~~',
 	'Class:ArchivingRule/Attribute:oql_scope' => 'OQL scope~~',
 	'Class:ArchivingRule/Attribute:oql_scope+' => 'OQL query to define which objects are concerned by this rule.~~',
 
