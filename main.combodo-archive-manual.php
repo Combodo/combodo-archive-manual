@@ -76,7 +76,7 @@ class ArchiveUtils
 	 */
 	public static function CanArchive($sClass)
 	{
-		return UserRights::IsAdministrator() && MetaModel::IsArchivable($sClass);
+		return (UserRights::IsAdministrator() || UserRights::IsActionAllowed('ArchivingRule', UR_ACTION_MODIFY))  && MetaModel::IsArchivable($sClass);
 	}
 
 	/**

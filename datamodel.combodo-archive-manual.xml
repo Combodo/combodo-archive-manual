@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
     <classes>
-        <class id="Ticket">
+      <class id="Ticket">
             <properties>
                 <archive _delta="define">
                     <enabled>true</enabled>
@@ -453,6 +453,7 @@
       <rank>16</rank>
       <oql>SELECT ArchivingRule</oql>
       <do_search>1</do_search>
+      <enable_class>ArchivingRule</enable_class>
     </menu>
   </menus>
   <user_rights>
@@ -464,6 +465,19 @@
       </group>
     </groups>
     <profiles>
+      <profile id="50" _delta="define">
+        <name>Archiving Agent</name>
+        <description>Person in charge of archiving. Must be used in conjunction with other profiles (e.g. Configuration Manager, Service Manager,…).</description>
+        <groups>
+          <group id="Archiving">
+            <actions>
+              <action id="action:delete">allow</action>
+              <action id="action:write">allow</action>
+              <action id="action:bulk write">allow</action>
+            </actions>
+          </group>
+        </groups>
+      </profile>
     </profiles>
   </user_rights>
 </itop_design>

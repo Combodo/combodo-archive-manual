@@ -32,7 +32,7 @@ require_once(APPROOT.'/application/itopwebpage.class.inc.php');
 require_once(APPROOT.'/application/startup.inc.php');
 
 require_once(APPROOT.'/application/loginwebpage.class.inc.php');
-LoginWebPage::DoLogin(true); // Check user rights and prompt if needed (must be admin)
+LoginWebPage::DoLogin(false); // Check user rights and prompt if needed (must be admin)
 
 $sOperation = utils::ReadParam('operation', '');
 $oAppContext = new ApplicationContext();
@@ -48,6 +48,10 @@ try
 	{
 		case 'archive_item':
 			$sClass = utils::ReadParam('class');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException(Dict::Format('UI:Error:ActionNotAllowed' ));
+			}
 			$iId = utils::ReadParam('id');
 			$oObject = MetaModel::GetObject($sClass, $iId, true, true);
 
@@ -65,6 +69,10 @@ try
 
 		case 'unarchive_item':
 			$sClass = utils::ReadParam('class');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException(Dict::Format('UI:Error:ActionNotAllowed' ));
+			}
 			$iId = utils::ReadParam('id');
 			$oObject = MetaModel::GetObjectWithArchive($sClass, $iId, true, true);
 
@@ -139,6 +147,11 @@ try
 			break;
 
 		case 'archive_list':
+			$sClass = utils::ReadParam('class', '', false, 'raw_data');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException("Not allowed to archive objects");
+			}
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
@@ -156,6 +169,11 @@ try
 			break;
 
 		case 'unarchive_list':
+			$sClass = utils::ReadParam('class', '', false, 'raw_data');
+			if (!ArchiveUtils::CanArchive($sClass))
+			{
+				throw new SecurityException("Not allowed to archive objects");
+			}
 			$sScope = utils::ReadParam('scope', null, false, 'raw_data');
 			$oSearch = DBSearch::FromOQL($sScope);
 			$oSet = new DBObjectSet($oSearch);
