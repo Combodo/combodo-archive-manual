@@ -37,7 +37,7 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 	const DEFAULT_MODULE_SETTING_DEBUG = false;
 	const DEFAULT_MODULE_SETTING_MAX_PER_REQUEST = '100';
 
-
+	protected $bDebug;
 	protected $iLimit;
 
 	protected function GetModuleName(){
@@ -175,4 +175,16 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 		return $iTotalObjectArchived.' object(s) archived';
 	}
 
+	/**
+	 * Prints a $sMessage in the cron output.
+	 *
+	 * @param string $sMessage
+	 */
+	protected function Trace($sMessage)
+	{
+		if ($this->bDebug)
+		{
+			echo $sMessage."\n";
+		}
+	}
 }
