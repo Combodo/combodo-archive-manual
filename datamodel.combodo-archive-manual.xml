@@ -465,7 +465,7 @@
       </group>
     </groups>
     <profiles>
-      <profile id="50" _delta="define">
+      <profile id="51" _delta="define">
         <name>Archiving Agent</name>
         <description>Person in charge of archiving. Must be used in conjunction with other profiles (e.g. Configuration Manager, Service Manager,…).</description>
         <groups>
