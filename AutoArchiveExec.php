@@ -108,7 +108,6 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 							$aIds[$sObjectClass][$iObjectId] = $iObjectId;
 						}
 					}
-					$this->Trace('|- count(aTemp):'.count($aTemp));
 					if(count($aTemp)<$this->iLimit) {
 						//no need another loop
 						$bRuleToProcess = false;
@@ -118,7 +117,6 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 						ArchivingRule::OnExecution($aIds);
 						foreach ($aIds as $sFinalClass => $aObjectIds) {
 							$sIds = implode(', ', $aObjectIds);
-							$this->Trace('|- archiving:'.$sIds);
 							$sArchiveRoot = MetaModel::GetAttributeOrigin($sFinalClass, 'archive_flag');
 							$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
 							$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
