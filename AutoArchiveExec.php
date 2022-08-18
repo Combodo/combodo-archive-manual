@@ -32,10 +32,10 @@
 class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 {
 	const MODULE_SETTING_DEBUG = 'debug';
-	const MODULE_SETTING_MAX_PER_REQUEST = 'nb_max_per_request';
+	const MODULE_SETTING_MAX_PER_REQUEST = 'max_buffer_size';
 
 	const DEFAULT_MODULE_SETTING_DEBUG = false;
-	const DEFAULT_MODULE_SETTING_MAX_PER_REQUEST = '100';
+	const DEFAULT_MODULE_SETTING_MAX_PER_REQUEST = '1000';
 
 	protected $bDebug;
 	protected $iLimit;
@@ -45,7 +45,7 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 	}
 
 	protected function GetDefaultModuleSettingTime(){
-		return '23:30';
+		return '03:00';
 	}
 
 	/**
