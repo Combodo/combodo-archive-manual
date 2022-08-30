@@ -2,7 +2,7 @@
 
 ## About
 
-This is the module used in the Data archiver simple extension for [iTop](https://github.com/Combodo/iTop).
+This is the module used in the Data archiver extension for [iTop](https://github.com/Combodo/iTop).
 
 
 ## Download

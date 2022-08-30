@@ -146,6 +146,11 @@
 		// - Class
 		if(!MetaModel::IsValidClass($sClass))	{
 		    $this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ClassNotValid', $sClass);
+		    return;
+		}
+		if(!MetaModel::IsArchivable($sClass))	{
+		    $this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ClassNotArchivable', $sClass);
+		    return;
 		}
 		// - Prearchiving status code attribute
 		if(!empty($sPreArchivingStatusCode) ) {
@@ -241,13 +246,22 @@
 		    }
 		}
 
-		// Checking that there not already a closing rule for this class
-		$oSearch = DBObjectSearch::FromOQL('SELECT ArchivingRule WHERE target_class = :target_class AND id != :id');
-		$oSet = new DBObjectSet($oSearch, array(), array('target_class' => $sClass, 'id' => $this->GetKey()));
-		if($oSet->Count() > 0)
-		{
-			$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
-		}
+
+		// Checking that there not already a archiving rule for this class
+		if ($this->GetKey()!=null) {
+			$oSearch = DBObjectSearch::FromOQL('SELECT ArchivingRule WHERE target_class = :target_class AND id != :id');
+			$oSet = new DBObjectSet($oSearch, array(), array('target_class' => $sClass, 'id' => $this->GetKey()));
+			if($oSet->Count() > 0)
+			{
+				$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
+			}
+		} else {
+			$oSearch = DBObjectSearch::FromOQL('SELECT ArchivingRule WHERE target_class = :target_class');
+			$oSet = new DBObjectSet($oSearch, array(), array('target_class' => $sClass));
+			if($oSet->Count() > 0)
+			{
+				$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
+			}
 	}]]></code>
           </method>
           <method id="GetFilter">
@@ -309,9 +323,15 @@
 	 */
 	public function OnShowPreview(WebPage $oPage)
 	{
-		$sClass = $this->Get('target_class');
+		  $sClass = $this->Get('target_class');
 
-		$oPage->p(MetaModel::GetClassIcon($sClass)."&nbsp;".Dict::Format('UI:AutoArchive:Title', MetaModel::GetName($sClass)));
+	  	if (version_compare(ITOP_DESIGN_LATEST_VERSION , '3.0') < 0) {
+					$oPage->p(MetaModel::GetClassIcon($sClass)."&nbsp;".Dict::Format('UI:AutoArchive:Title', MetaModel::GetName($sClass)));
+			} else {
+          $oUiMedallionBlock = new Combodo\iTop\Application\UI\Base\Component\MedallionIcon\MedallionIcon(MetaModel::GetClassIcon($sClass, false));
+          $oUiMedallionBlock->SetDescription(Dict::Format('UI:AutoArchive:Title', MetaModel::GetName($sClass)));
+					$oPage->AddSubBlock($oUiMedallionBlock);
+			};
 
 		$aParams = array(
 			'menu' => true,

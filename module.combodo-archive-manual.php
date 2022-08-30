@@ -25,7 +25,7 @@ SetupWebPage::AddModule(
 		'datamodel' => array(
 			'main.combodo-archive-manual.php',
 			'model.combodo-archive-manual.php',
-			'AutoArchiveExec.php',
+			'AutoArchiver.php',
 		),
 		'webservice' => array(
 
@@ -46,6 +46,11 @@ SetupWebPage::AddModule(
 		//
 		'settings' => array(
 			// Module specific settings go here, if any
+				'week_days' => 'monday, tuesday, wednesday, thursday, friday, saturday, sunday',
+				'time' => '03:30',
+				'enabled' => true,
+				'debug' => true,
+				'max_buffer_size' => 1000,
 		),
 	)
 );

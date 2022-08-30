@@ -54,7 +54,8 @@ Dict::Add('RU RU', 'Russian', 'Русский', array(
 	'Class:ArchivingRule/Attribute:oql_scope+' => 'OQL query to define which objects are concerned by this rule.~~',
 
 	// Integrity errors
-	'Class:ArchivingRule/Error:ClassNotValid' => 'Class must be a valid class from datamodel, "%1$s" given~~',
+	'Class:ArchivingRule/Error:ClassNotValid' => 'Class "%1$s" does not exist in your datamodel~~',
+	'Class:ArchivingRule/Error:ClassNotArchivable' => 'Class "%1$s" is not archivable, please modify first your datamodel~~',
 	'Class:ArchivingRule/Error:AttributeNotValid' => '"%2$s" is not a valid attribute for class "%1$s"~~',
 	'Class:ArchivingRule/Error:AttributeMustBeDate' => '"Date to check" must be a date attribute of class "%1$s", "%2$s" is not a date~~',
 	'Class:ArchivingRule/Error:StatusNotValid' => '"%2$s" is not a valid attribute for class "%1$s"~~',

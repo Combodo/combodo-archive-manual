@@ -55,7 +55,8 @@ Dict::Add('FR FR', 'French', 'Français', array(
 	'Class:ArchivingRule/Attribute:oql_scope+' => 'Requête OQL définissant les objets concernés par cette règle.',
 
 	// Integrity errors
-	'Class:ArchivingRule/Error:ClassNotValid' => 'La classe doit faire partie du modèle de données, "%1$s" donnée',
+	'Class:ArchivingRule/Error:ClassNotValid' => 'La classe  "%1$s" n\'existe pas dans votre modèle de données',
+	'Class:ArchivingRule/Error:ClassNotArchivable' => 'La classe  "%1$s" n\'est pas archivable, veuillez modifier d\'abord votre modèle de données',
 	'Class:ArchivingRule/Error:AttributeNotValid' =>  '"%2$s" n\'est pas un attribut valide pour la classe "%1$s"',
 	'Class:ArchivingRule/Error:AttributeMustBeDate' =>'La "date à contrôler" doit être un attribut de type date pour la classe "%1$s".  "%2$s" n\'est pas une date',
 	'Class:ArchivingRule/Error:StatusNotValid' => '"%2$s" n\'est pas un attribut valide pour la classe  "%1$s"',

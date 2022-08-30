@@ -63,6 +63,7 @@ Dict::Add('DE DE', 'German', 'Deutsch', array(
 
 	// Integrity errors
 	'Class:ArchivingRule/Error:ClassNotValid' => 'Die Klasse muss eine gültige Klasse des Datenmodells sein, es wurde aber "%1$s" angegeben.',
+	'Class:ArchivingRule/Error:ClassNotArchivable' => 'Class  "%1$s" is not archivable, please modify first your datamodel~~',
 	'Class:ArchivingRule/Error:AttributeNotValid' => '"%2$s" ist kein gültiges Attribut der Klasse "%1$s"',
 	'Class:ArchivingRule/Error:AttributeMustBeDate' => '""%2$s" muss ein Attribut vom Typ "Datum" der Klasse "%1$s" sein',
 	'Class:ArchivingRule/Error:StatusNotValid' => '"%2$s" ist kein gültiges Attribut der Klasse "%1$s"',

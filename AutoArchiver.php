@@ -29,7 +29,7 @@
 /**
  * Class AutoArchiveExec
  */
-class AutoArchiveExec extends AbstractWeeklyScheduledProcess
+class AutoArchiver extends AbstractWeeklyScheduledProcess
 {
 	const MODULE_SETTING_DEBUG = 'debug';
 	const MODULE_SETTING_MAX_PER_REQUEST = 'max_buffer_size';
@@ -45,7 +45,7 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 	}
 
 	protected function GetDefaultModuleSettingTime(){
-		return '03:00';
+		return '02:00';
 	}
 
 	/**
@@ -74,7 +74,6 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 		$this->Trace('Processing '.$oRulesSet->Count().' active archiving rules...');
 
 		/** @var ArchivingRule $oRule */
-		$iTotalProcessedObjectsCount = 0;
 		while((time()<$iTimeLimit) && ($oRule = $oRulesSet->Fetch()))
 		{
 			$iRuleProcessedObjectsCount = 0;
@@ -116,37 +115,39 @@ class AutoArchiveExec extends AbstractWeeklyScheduledProcess
 					try {
 						ArchivingRule::OnExecution($aIds);
 						foreach ($aIds as $sFinalClass => $aObjectIds) {
-							$sIds = implode(', ', $aObjectIds);
-							$sArchiveRoot = MetaModel::GetAttributeOrigin($sFinalClass, 'archive_flag');
-							$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
-							$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
-							$aJoins = array("`$sRootTable`");
-							$aUpdates = array();
-							foreach (MetaModel::EnumParentClasses($sFinalClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass) {
-								if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) {
-									continue;
-								}
-
-								$sTable = MetaModel::DBGetTable($sParentClass);
-								$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
-								if ($sParentClass == $sArchiveRoot) {
-									if ($bArchive) {
-										// Set the date (do not change it)
-										$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
-										$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
-									} else {
-										// Reset the date
-										$aUpdates[] = "`$sTable`.`archive_date` = null";
+							if (sizeof($aObjectIds)>0) {
+								$sIds = implode(', ', $aObjectIds);
+								$sArchiveRoot = MetaModel::GetAttributeOrigin($sFinalClass, 'archive_flag');
+								$sRootTable = MetaModel::DBGetTable($sArchiveRoot);
+								$sRootKey = MetaModel::DBGetKey($sArchiveRoot);
+								$aJoins = array("`$sRootTable`");
+								$aUpdates = array();
+								foreach (MetaModel::EnumParentClasses($sFinalClass, ENUM_PARENT_CLASSES_ALL) as $sParentClass) {
+									if (!MetaModel::IsValidAttCode($sParentClass, 'archive_flag')) {
+										continue;
 									}
-								} else {
-									$sKey = MetaModel::DBGetKey($sParentClass);
-									$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
+
+									$sTable = MetaModel::DBGetTable($sParentClass);
+									$aUpdates[] = "`$sTable`.`archive_flag` = $iFlag";
+									if ($sParentClass == $sArchiveRoot) {
+										if ($bArchive) {
+											// Set the date (do not change it)
+											$sDate = '"'.date(AttributeDate::GetSQLFormat()).'"';
+											$aUpdates[] = "`$sTable`.`archive_date` = coalesce(`$sTable`.`archive_date`, $sDate)";
+										} else {
+											// Reset the date
+											$aUpdates[] = "`$sTable`.`archive_date` = null";
+										}
+									} else {
+										$sKey = MetaModel::DBGetKey($sParentClass);
+										$aJoins[] = "`$sTable` ON `$sTable`.`$sKey` = `$sRootTable`.`$sRootKey`";
+									}
 								}
+								$sJoins = implode(' INNER JOIN ', $aJoins);
+								$sValues = implode(', ', $aUpdates);
+								$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
+								CMDBSource::Query($sUpdateQuery);
 							}
-							$sJoins = implode(' INNER JOIN ', $aJoins);
-							$sValues = implode(', ', $aUpdates);
-							$sUpdateQuery = "UPDATE $sJoins SET $sValues WHERE `$sRootTable`.`$sRootKey` IN ($sIds)";
-							CMDBSource::Query($sUpdateQuery);
 						}
 						$iRuleProcessedObjectsCount +=count($aTemp);
 					}
