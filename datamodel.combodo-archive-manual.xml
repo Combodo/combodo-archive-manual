@@ -262,6 +262,7 @@
 			{
 				$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
 			}
+		}
 	}]]></code>
           </method>
           <method id="GetFilter">
@@ -469,7 +470,7 @@
     </classes>
   <menus>
     <menu xsi:type="OQLMenuNode" id="ArchivingRule" _delta="define">
-      <parent>ServiceManagement</parent>
+      <parent>ConfigurationTools</parent>
       <rank>16</rank>
       <oql>SELECT ArchivingRule</oql>
       <do_search>1</do_search>
