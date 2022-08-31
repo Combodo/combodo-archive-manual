@@ -245,24 +245,6 @@
 		        $this->m_aCheckIssues[] = Dict::Format('Class:StateRule/Error:OQLNotValid', $e->getMessage());
 		    }
 		}
-
-
-		// Checking that there not already a archiving rule for this class
-		if ($this->GetKey()!=null) {
-			$oSearch = DBObjectSearch::FromOQL('SELECT ArchivingRule WHERE target_class = :target_class AND id != :id');
-			$oSet = new DBObjectSet($oSearch, array(), array('target_class' => $sClass, 'id' => $this->GetKey()));
-			if($oSet->Count() > 0)
-			{
-				$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
-			}
-		} else {
-			$oSearch = DBObjectSearch::FromOQL('SELECT ArchivingRule WHERE target_class = :target_class');
-			$oSet = new DBObjectSet($oSearch, array(), array('target_class' => $sClass));
-			if($oSet->Count() > 0)
-			{
-				$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:ExistingRuleForClass', $sClass);
-			}
-		}
 	}]]></code>
           </method>
           <method id="GetFilter">
