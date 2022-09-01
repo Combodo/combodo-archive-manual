@@ -38,7 +38,7 @@ class AutoArchiver extends AbstractWeeklyScheduledProcess
 	const DEFAULT_MODULE_SETTING_MAX_PER_REQUEST = '1000';
 
 	protected $bDebug;
-	protected $iLimit;
+	protected $iMaxItemsPerRequest;
 
 	protected function GetModuleName(){
 		return 'combodo-archive';
@@ -54,8 +54,7 @@ class AutoArchiver extends AbstractWeeklyScheduledProcess
 	function __construct()
 	{
 		$this->bDebug = (bool) MetaModel::GetModuleSetting($this->GetModuleName(), static::MODULE_SETTING_DEBUG, static::DEFAULT_MODULE_SETTING_DEBUG);
-		$this->iLimit = (int) MetaModel::GetModuleSetting($this->GetModuleName(), static::MODULE_SETTING_MAX_PER_REQUEST, static::DEFAULT_MODULE_SETTING_MAX_PER_REQUEST);
-		//ini_set('max_execution_time', max(3600, ini_get('max_execution_time')));
+		$this->iMaxItemsPerRequest = (int) MetaModel::GetModuleSetting($this->GetModuleName(), static::MODULE_SETTING_MAX_PER_REQUEST, static::DEFAULT_MODULE_SETTING_MAX_PER_REQUEST);
 
 	}
 
@@ -91,10 +90,9 @@ class AutoArchiver extends AbstractWeeklyScheduledProcess
 				$iFlag = 1;
 				$bArchive = true;
 				$bRuleToProcess = true;
-				$this->Trace('|- TimeLimit:'.$iTimeLimit);
 				//while there is objects to process
 				while ($bRuleToProcess && (time()<$iTimeLimit)) {
-					$oSet = new DBObjectSet($oSearch, array(),  array(),  null, $this->iLimit);
+					$oSet = new DBObjectSet($oSearch, array(),  array(),  null, $this->iMaxItemsPerRequest);
 					if (MetaModel::IsStandaloneClass($sClass)) {
 						$oSet->OptimizeColumnLoad(array($sClass => array()));
 						$aTemp = $oSet->GetColumnAsArray('id');
@@ -107,7 +105,7 @@ class AutoArchiver extends AbstractWeeklyScheduledProcess
 							$aIds[$sObjectClass][$iObjectId] = $iObjectId;
 						}
 					}
-					if(count($aTemp)<$this->iLimit) {
+					if(count($aTemp)<$this->iMaxItemsPerRequest) {
 						//no need another loop
 						$bRuleToProcess = false;
 					}

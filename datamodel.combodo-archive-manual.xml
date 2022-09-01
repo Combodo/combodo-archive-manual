@@ -159,7 +159,8 @@
 			} else {
 				$oStatusAttrDef = MetaModel::GetAttributeDef($sClass, $sPreArchivingStatusCode);
 				if (!$oStatusAttrDef instanceof AttributeEnum) {
-					$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:StatusCodeNotValid', $sClass, $sPreArchivingStatusCode);
+				  $oAttStatusDef = MetaModel::GetAttributeDef('ArchivingRule', 'pre_archiving_status_code');
+					$this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:StatusCodeNotValid', $sClass, $sPreArchivingStatusCode,$oAttStatusDef->GetLabel());
 				} else {
 					// - Prearchiving status code value
 					$aStates = $oStatusAttrDef->GetAllowedValues();
@@ -181,7 +182,8 @@
                 $oAttDef = MetaModel::GetAttributeDef($sClass, $sDateToCheckAttCode);
                 if(($oAttDef instanceof AttributeDateTime) === false)
                 {
-                    $this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:AttributeMustBeDate', $sClass, $sDateToCheckAttCode);
+                    $oAttDate = MetaModel::GetAttributeDef('ArchivingRule', 'date_to_check_att');
+                    $this->m_aCheckIssues[] = Dict::Format('Class:ArchivingRule/Error:AttributeMustBeDate', $sClass, $sDateToCheckAttCode, $oAttDate->GetLabel());
                 }
             }
         }
